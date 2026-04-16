@@ -5,7 +5,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.payment.api.dto.CreatePaymentRequest;
 import org.example.payment.api.dto.PaymentDto;
-import org.example.payment.domain.PaymentService;
+import org.example.payment.application.PaymentService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
