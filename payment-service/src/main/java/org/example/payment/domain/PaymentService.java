@@ -1,9 +1,9 @@
 package org.example.payment.domain;
 
+import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.example.payment.api.dto.CreatePaymentRequest;
 import org.example.payment.api.dto.PaymentDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,11 +11,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 
+
+@Slf4j
 @Service
 public class PaymentService {
 
-    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
-    private static final BigDecimal MAX_AMOUNT = new BigDecimal("10000.00");
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("100000.00");
 
     private final PaymentRepository paymentRepository;
 
@@ -28,30 +29,38 @@ public class PaymentService {
         if (request.amount().compareTo(MAX_AMOUNT) > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Amount too large");
         }
-        PaymentEntity payment = new PaymentEntity(request.userId(), request.amount(), PaymentStatus.NEW);
-        PaymentEntity saved = paymentRepository.save(payment);
-        log.info("Payment created: id={}", saved.getId());
+        PaymentEntity payment = PaymentEntity.builder()
+            .userId(request.userId())
+            .amount(request.amount())
+            .build();
+
+        PaymentEntity saved = paymentRepository.saveAndFlush(payment);
+        log.info("Payment created: ID: {}", saved.getId());
         return convertEntityToDto(saved);
     }
 
-    public PaymentDto getPayment(Long id) {
+    @Transactional(readOnly = true)
+    public PaymentDto getPayment(UUID id) {
         PaymentEntity payment = findPaymentOrThrow(id);
         return convertEntityToDto(payment);
     }
 
     @Transactional
-    public PaymentDto confirmPayment(Long id) {
+    public PaymentDto confirmPayment(UUID id) {
         PaymentEntity payment = findPaymentOrThrow(id);
-        if (!PaymentStatus.NEW.equals(payment.getStatus())) {
+
+        if (PaymentStatus.NEW != payment.getStatus()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payment status must be NEW");
         }
+
         payment.setStatus(PaymentStatus.SUCCEEDED);
-        PaymentEntity saved = paymentRepository.save(payment);
-        log.info("Payment has been confirmed: id={}", id);
+        PaymentEntity saved = paymentRepository.saveAndFlush(payment);
+
+        log.info("Payment has been confirmed: ID: {}", id);
         return convertEntityToDto(saved);
     }
 
-    private PaymentEntity findPaymentOrThrow(Long id) {
+    private PaymentEntity findPaymentOrThrow(UUID id) {
         return paymentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment with id=" + id + " not found"));
     }

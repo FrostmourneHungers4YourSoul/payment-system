@@ -1,6 +1,8 @@
 package org.example.payment.api;
 
 import jakarta.validation.Valid;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.example.payment.api.dto.CreatePaymentRequest;
 import org.example.payment.api.dto.PaymentDto;
 import org.example.payment.domain.PaymentService;
@@ -14,13 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/payments")
+@RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
-
-    public PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
-    }
 
     @PostMapping
     public PaymentDto create(@Valid @RequestBody CreatePaymentRequest request) {
@@ -28,12 +27,12 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
-    public PaymentDto get(@PathVariable Long id) {
+    public PaymentDto get(@PathVariable UUID id) {
         return paymentService.getPayment(id);
     }
 
     @PostMapping("/{id}/confirm")
-    public PaymentDto confirm(@PathVariable Long id) {
+    public PaymentDto confirm(@PathVariable UUID id) {
         return paymentService.confirmPayment(id);
     }
 }
