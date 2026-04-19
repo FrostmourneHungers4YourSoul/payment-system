@@ -1,4 +1,4 @@
-package org.example.config;
+package org.example.payment.config;
 
 import java.time.Duration;
 import org.example.payment.api.dto.PaymentDto;
@@ -18,10 +18,10 @@ import tools.jackson.databind.ObjectMapper;
 
 @EnableCaching
 @Configuration
-public class CashConfig {
+public class CacheConfig {
 
     @Bean
-    public CacheManager cashManager(
+    public CacheManager cacheManager(
         RedisConnectionFactory connectionFactory,
         ObjectMapper objectMapper,
         @Value("${app.cache.payments-ttl}") Duration ttl

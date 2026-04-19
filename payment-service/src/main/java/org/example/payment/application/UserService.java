@@ -1,6 +1,7 @@
 package org.example.payment.application;
 
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.payment.api.dto.CreateUserRequest;
 import org.example.payment.api.dto.UserDto;
@@ -29,13 +30,14 @@ public class UserService {
                 "User already exists: " + request.email()
             );
         }
-        UserEntity user = new UserEntity(request.email());
+        UserEntity user = new UserEntity();
+        user.setEmail(request.email());
         UserEntity saved = userRepository.save(user);
         return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
-    public UserDto getUserOrThrow(Long id) {
+    public UserDto getUserOrThrow(UUID id) {
         UserEntity user = userRepository.findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));

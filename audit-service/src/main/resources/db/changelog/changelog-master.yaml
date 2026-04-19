@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: classpath:db/changelog/sql/000-create-audit-schema.sql
+  - include:
+      file: classpath:db/changelog/sql/001-create-payment-audit-logs.sql
+  - include:
+      file: classpath:db/changelog/sql/002-create-processed-events.sql

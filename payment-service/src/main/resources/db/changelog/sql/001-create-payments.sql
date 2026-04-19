@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS payments
 (
     id         UUID PRIMARY KEY,
-    user_id    BIGINT         NOT NULL,
+    user_id    UUID           NOT NULL,
     amount     NUMERIC(19, 2) NOT NULL,
     status     VARCHAR(32)    NOT NULL,
     created_at TIMESTAMPTZ    NOT NULL,

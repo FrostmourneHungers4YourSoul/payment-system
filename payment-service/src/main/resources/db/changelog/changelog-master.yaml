@@ -1,7 +1,9 @@
 databaseChangeLog:
   - include:
-      author: pavel_sorokin
+      file: classpath:db/changelog/sql/000-create-payment-schema.sql
+  - include:
       file: classpath:db/changelog/sql/001-create-payments.sql
   - include:
-      author: pavel_sorokin
       file: classpath:db/changelog/sql/002-create-users.sql
+  - include:
+      file: classpath:db/changelog/sql/003-move-payment-tables-to-payment-schema.sql
