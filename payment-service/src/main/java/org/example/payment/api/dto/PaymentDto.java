@@ -7,7 +7,7 @@ import org.example.payment.domain.PaymentStatus;
 
 public record PaymentDto(
     UUID id,
-    Long userId,
+    UUID userId,
     BigDecimal amount,
     PaymentStatus status,
     Instant createdAt,

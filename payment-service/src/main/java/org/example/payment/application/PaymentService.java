@@ -1,6 +1,8 @@
 package org.example.payment.application;
 
+import java.math.BigDecimal;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.payment.api.dto.CreatePaymentRequest;
 import org.example.payment.api.dto.PaymentDto;
@@ -9,6 +11,7 @@ import org.example.payment.domain.PaymentStatus;
 import org.example.payment.infrastructure.persistence.PaymentEntity;
 import org.example.payment.infrastructure.persistence.PaymentRepository;
 import org.example.payment.infrastructure.persistence.UserRepository;
+import org.example.payment.kafka.PaymentEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -16,11 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
-
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("100000.00");
@@ -29,20 +31,13 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
 
-    public PaymentService(
-            PaymentEntityMapper mapper,
-            PaymentRepository paymentRepository,
-            UserRepository userRepository
-    ) {
-        this.mapper = mapper;
-        this.paymentRepository = paymentRepository;
-        this.userRepository = userRepository;
-    }
+    private final PaymentEventPublisher eventPublisher;
 
     @Transactional
     public PaymentDto createPayment(CreatePaymentRequest request) {
         if (!userRepository.existsById(request.userId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found id = " + request.userId());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "User not found id = " + request.userId());
         }
 
         if (request.amount().compareTo(MAX_AMOUNT) > 0) {
@@ -55,6 +50,8 @@ public class PaymentService {
 
         PaymentEntity saved = paymentRepository.saveAndFlush(payment);
         log.info("Payment created: ID: {}", saved.getId());
+
+        eventPublisher.publishPaymentCreated(saved);
         return mapper.convertEntityToDto(saved);
     }
 
@@ -75,14 +72,17 @@ public class PaymentService {
         }
 
         payment.setStatus(PaymentStatus.SUCCEEDED);
-        PaymentEntity saved = paymentRepository.saveAndFlush(payment);
 
+        PaymentEntity saved = paymentRepository.saveAndFlush(payment);
         log.info("Payment has been confirmed: ID: {}", id);
+
+        eventPublisher.publishPaymentSucceeded(saved);
         return mapper.convertEntityToDto(saved);
     }
 
     private PaymentEntity findPaymentOrThrow(UUID id) {
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment with id=" + id + " not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "Payment with id=" + id + " not found"));
     }
 }

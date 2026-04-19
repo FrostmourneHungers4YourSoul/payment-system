@@ -1,9 +1,10 @@
 package org.example.payment.api.dto;
 
 import java.util.List;
+import java.util.UUID;
 
 public record UserDto(
-        Long id,
+        UUID id,
         String email,
         List<PaymentDto> payments
 ) {

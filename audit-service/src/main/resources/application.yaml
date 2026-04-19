@@ -4,3 +4,38 @@ server:
 spring:
   application:
     name: audit-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/payments
+    username: postgres
+    password: postgres
+
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/changelog-master.yaml
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: audit
+    open-in-view: false
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: audit-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: org.example.common
+        spring.json.value.default.type: org.example.common.PaymentEvent
+        spring.json.use.type.headers: false
+
+app:
+  kafka:
+    topics:
+      payments: payments.events
